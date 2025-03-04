@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "723916768361",
+    "project_id": "aurahome-5d3f9",
+    "storage_bucket": "aurahome-5d3f9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:723916768361:android:27279261335797be260ef8",
+        "android_client_info": {
+          "package_name": "com.example.aurahome"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiDdDY5yAkbUkT44izwZMlG7kWeDtaAco"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
