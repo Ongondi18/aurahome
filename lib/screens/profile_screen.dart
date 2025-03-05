@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../widgets/app_drawer.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
+import 'dart:io';
 
 class ProfileScreen extends StatefulWidget {
   static const routeName = '/profile';
@@ -17,6 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   final _authService = AuthService();
   bool _isEditing = false;
+  String? _imageUrl;
 
   @override
   void initState() {
@@ -28,6 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final userData = await _authService.getCurrentUserData();
     if (userData != null) {
       _nameController.text = userData.displayName;
+      _imageUrl = userData.photoURL;
     }
   }
 
@@ -74,10 +79,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.grey[200],
-                      backgroundImage: user.photoURL != null
-                          ? NetworkImage(user.photoURL!)
+                      backgroundImage: _imageUrl != null
+                          ? NetworkImage(_imageUrl!)
                           : null,
-                      child: user.photoURL == null
+                      child: _imageUrl == null
                           ? const Icon(Icons.person, size: 50)
                           : null,
                     ),
@@ -91,17 +96,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: IconButton(
                             icon: const Icon(Icons.camera_alt, size: 18),
                             color: Colors.white,
-                            onPressed: () {
-                              // TODO: Implement photo upload
-                            },
+                            onPressed: () => _selectImage(),
                           ),
                         ),
                       ),
                   ],
                 ),
                 const SizedBox(height: 24),
-
-                // Profile Form
                 Form(
                   key: _formKey,
                   child: Column(
@@ -127,7 +128,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
                 // Additional Options
                 _buildOptionTile(
                   icon: Icons.lock_outline,
@@ -157,6 +157,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _selectImage() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      await _uploadImage(image);
+    }
+  }
+
+  Future<void> _uploadImage(XFile image) async {
+    final userId = _authService.currentUser?.uid; // Use null-aware operator
+    if (userId != null) {
+        final storageRef = FirebaseStorage.instance.ref().child('profile_images/$userId.jpg');
+        await storageRef.putFile(File(image.path));
+        final downloadUrl = await storageRef.getDownloadURL();
+
+        // Update the user's profile with the new image URL
+        await _authService.updateUserProfileImage(downloadUrl);
+        setState(() {
+            _imageUrl = downloadUrl;
+        });
+    } else {
+        // Handle the case where userId is null (e.g., show an error message)
+        print("User is not logged in.");
+    }
   }
 
   Widget _buildOptionTile({

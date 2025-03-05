@@ -344,4 +344,15 @@ class AuthService {
     }
     return displayName;
   }
+
+  Future<void> updateUserProfileImage(String imageUrl) async {
+    final user = currentUser;
+    if (user != null) {
+      await _firestore.collection('users').doc(user.uid).update({
+        'photoURL': imageUrl,
+      });
+    } else {
+      throw Exception("User not logged in");
+    }
+  }
 } 
